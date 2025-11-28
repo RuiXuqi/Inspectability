@@ -18,11 +18,14 @@ public class InspectorScreen extends GuiScreen {
     private float offsetZ = -2.0f;
     private float scale = 2.0f;
 
-    private double lastMouseX;
-    private double lastMouseY;
+    private int lastMouseX;
+    private int lastMouseY;
 
     private static final float MIN_SCALE = 0.1f;
     private static final float MAX_SCALE = 20.0f;
+
+    private static final float ROTATION_SENSITIVITY = 0.5f;
+    private static final float MOVE_SENSITIVITY = 0.01f;
 
     private long screenOpenedTime;
 
@@ -52,9 +55,6 @@ public class InspectorScreen extends GuiScreen {
         HeldItemTransformManager.setInspectorMode(true);
         HeldItemTransformManager.setTransformations(0.0f, 0.0f, -2.0f, 2.0f, 0.0f, 0.0f, 0.0f);
 
-        lastMouseX = (double) (Mouse.getEventX() * this.width) / this.mc.displayWidth;
-        lastMouseY = this.height - (double) (Mouse.getEventY() * this.height) / this.mc.displayHeight - 1;
-
         screenOpenedTime = Minecraft.getSystemTime();
     }
 
@@ -64,19 +64,23 @@ public class InspectorScreen extends GuiScreen {
     }
 
     @Override
-    protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
-        if (clickedMouseButton == 0) {
-            if (lastMouseX != 0 || lastMouseY != 0) {
-                rotationY += (float) ((mouseX - lastMouseX) * 0.5f);
-                rotationX += (float) ((mouseY - lastMouseY) * 0.5f);
-            }
-        }
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+    }
 
-        if (clickedMouseButton == 1) {
-            if (lastMouseX != 0 || lastMouseY != 0) {
-                offsetX += (float) ((mouseX - lastMouseX) * 0.01f);
-                offsetY -= (float) ((mouseY - lastMouseY) * 0.01f);
-            }
+    @Override
+    protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+        int dx = mouseX - lastMouseX;
+        int dy = mouseY - lastMouseY;
+
+        if (clickedMouseButton == 0) {
+            rotationY += dx * ROTATION_SENSITIVITY;
+            rotationX += dy * ROTATION_SENSITIVITY;
+        } else if (clickedMouseButton == 1) {
+            offsetX += dx * MOVE_SENSITIVITY;
+            offsetY -= dy * MOVE_SENSITIVITY;
         }
 
         lastMouseX = mouseX;
